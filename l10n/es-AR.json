@@ -1,0 +1,12 @@
+ {
+        "title": "Exportify -> M3U",
+        "language": "🌎 Idioma/Language",
+        "music_folder": "Carpeta de música",
+        "select_music": "Seleccionar carpeta de música",
+        "exportify_csv": "CSV exportación de la lista (de Exportify)",
+        "select_csv": "Seleccionar CSV de la lista",
+        "generate": "Generar lista",
+        "matched": "Coincidencias: {count}",
+        "missing": "Sin encontrar: {count}",
+        "saved": "Guardada en: {path}"
+ }

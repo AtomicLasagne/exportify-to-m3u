@@ -1,55 +1,164 @@
-from PySide6.QtWidgets import QApplication,QMainWindow,QWidget,QVBoxLayout,QPushButton,QLineEdit,QFileDialog,QLabel,QTextEdit
-from exportify.exportify_handler import load_csv
+from PySide6.QtWidgets import (
+    QApplication, QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QPushButton,
+    QLineEdit,
+    QFileDialog,
+    QLabel,
+    QTextEdit,
+    QComboBox,
+)
+
+
 from music.scanner import MusicScanner
 from music.matcher import match_tracks
+from exportify.exportify_handler import load_csv
 from playlist.m3u_writer import write_m3u
+from l10n.localization_service import t, set_language, languages
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Exportify -> M3U")
-        self.music_dir=''
-        self.csv_path=''
-        self.results=[]
 
-        w=QWidget()
-        l=QVBoxLayout(w)
+        self.music_dir = ""
+        self.csv_path = ""
+        self.results = []
 
-        self.music=QLineEdit(); self.music.setPlaceholderText('Music folder')
-        self.csv=QLineEdit(); self.csv.setPlaceholderText('Spotify CSV export')
-        log=QTextEdit(); log.setReadOnly(True); self.log=log
+        self.create_ui()
+        self.connect_signals()
+        self.translate_ui()
 
-        b1=QPushButton('Select music folder')
-        b2=QPushButton('Select playlist CSV')
-        b3=QPushButton('Generate M3U')
+    def create_ui(self):
+        self.central = QWidget()
+        self.layout = QVBoxLayout(self.central)
 
-        b1.clicked.connect(self.pick_music)
-        b2.clicked.connect(self.pick_csv)
-        b3.clicked.connect(self.generate)
+        # Language
+        self.lbl_language = QLabel()
+        self.cmb_language = QComboBox()
 
-        for x in [QLabel('Music folder'),self.music,b1,QLabel('Playlist CSV'),self.csv,b2,b3,log]: l.addWidget(x)
-        self.setCentralWidget(w)
+        for code, name in languages().items():
+            self.cmb_language.addItem(name, code)
+
+        # Music folder
+        self.lbl_music = QLabel()
+        self.txt_music = QLineEdit()
+        self.btn_music = QPushButton()
+
+        # CSV
+        self.lbl_csv = QLabel()
+        self.txt_csv = QLineEdit()
+        self.btn_csv = QPushButton()
+
+        # Generate
+        self.btn_generate = QPushButton()
+
+        # Log
+        self.log = QTextEdit()
+        self.log.setReadOnly(True)
+
+        widgets = [
+            self.lbl_language,
+            self.cmb_language,
+            self.lbl_music,
+            self.txt_music,
+            self.btn_music,
+            self.lbl_csv,
+            self.txt_csv,
+            self.btn_csv,
+            self.btn_generate,
+            self.log,
+        ]
+
+        for widget in widgets:
+            self.layout.addWidget(widget)
+
+        self.setCentralWidget(self.central)
+
+    def connect_signals(self):
+        self.btn_music.clicked.connect(self.pick_music)
+        self.btn_csv.clicked.connect(self.pick_csv)
+        self.btn_generate.clicked.connect(self.generate)
+        self.cmb_language.currentIndexChanged.connect(
+            self.change_language
+        )
+
+    def translate_ui(self):
+        self.setWindowTitle(t("title"))
+
+        self.lbl_language.setText(t("language"))
+
+        self.lbl_music.setText(t("music_folder"))
+        self.txt_music.setPlaceholderText(t("music_folder"))
+        self.btn_music.setText(t("select_music"))
+
+        self.lbl_csv.setText(t("exportify_csv"))
+        self.txt_csv.setPlaceholderText(t("exportify_csv"))
+        self.btn_csv.setText(t("select_csv"))
+
+        self.btn_generate.setText(t("generate"))
+
+    def change_language(self):
+        code = self.cmb_language.currentData()
+
+        if code:
+            set_language(code)
+            self.translate_ui()
 
     def pick_music(self):
-        p=QFileDialog.getExistingDirectory(self,'Music folder')
-        if p: self.music.setText(p)
+        path = QFileDialog.getExistingDirectory(
+            self,
+            t("select_music"),
+        )
+
+        if path:
+            self.txt_music.setText(path)
 
     def pick_csv(self):
-        p,_=QFileDialog.getOpenFileName(self,'Expotify CSV','','CSV (*.csv)')
-        if p: self.csv.setText(p)
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            t("select_csv"),
+            "",
+            "CSV (*.csv)",
+        )
+
+        if path:
+            self.txt_csv.setText(path)
 
     def generate(self):
-        tracks=load_csv(self.csv.text())
-        music=MusicScanner(self.music.text()).scan()
-        matches,missing=match_tracks(tracks,music)
-        out='playlist.m3u'
-        write_m3u(out,matches)
-        self.log.append(f'Matched: {len(matches)}')
-        self.log.append(f'Missing: {len(missing)}')
-        self.log.append(f'Created: {out}')
+        tracks = load_csv(self.txt_csv.text())
+
+        music = MusicScanner(
+            self.txt_music.text()
+        ).scan()
+
+        matches, missing = match_tracks(
+            tracks,
+            music,
+        )
+
+        out = "playlist.m3u"
+
+        write_m3u(out, matches)
+
+        self.log.append(
+            t("matched", count=len(matches))
+        )
+
+        self.log.append(
+            t("missing", count=len(missing))
+        )
+
+        self.log.append(
+            t("saved", path=out)
+        )
+
 
 def run_app():
-    app=QApplication([])
-    w=MainWindow()
-    w.show()
+    app = QApplication([])
+
+    window = MainWindow()
+    window.show()
+
     app.exec()

@@ -1,0 +1,12 @@
+{
+    "title": "Exportify -> M3U",
+    "language": "🌍 Język/Language",
+    "music_folder": "Folder z muzyką",
+    "select_music": "Wybierz folder z muzyką",
+    "exportify_csv": "Eksport playlisty w CSV (z Exportify)",
+    "select_csv": "Wybierz plik z playlistą w CSV",
+    "generate": "Generuj playlistę",
+    "matched": "Znaleziono: {count}",
+    "missing": "Nie znaleziono: {count}",
+    "saved": "Zapisano w: {path}"
+}
