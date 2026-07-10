@@ -1,3 +1,6 @@
+import os
+import sys
+
 from PySide6.QtWidgets import (
     QApplication, QMainWindow,
     QWidget,
@@ -9,13 +12,21 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QComboBox,
 )
-
+from PySide6.QtGui import QIcon
 
 from music.scanner import MusicScanner
 from music.matcher import match_tracks
 from exportify.exportify_handler import load_csv
 from playlist.m3u_writer import write_m3u
 from l10n.localization_service import t, set_language, languages
+
+#Local access
+def resource_path(name):
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, name)
+
+#Import local items
+ICON_PATH = resource_path("e2m_icon.ico")
 
 
 class MainWindow(QMainWindow):
@@ -26,6 +37,7 @@ class MainWindow(QMainWindow):
         self.csv_path = ""
         self.results = []
 
+        self.setWindowIcon(QIcon(ICON_PATH))
         self.create_ui()
         self.connect_signals()
         self.translate_ui()
@@ -157,6 +169,7 @@ class MainWindow(QMainWindow):
 
 def run_app():
     app = QApplication([])
+    app.setWindowIcon(QIcon(ICON_PATH))
 
     window = MainWindow()
     window.show()
